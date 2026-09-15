@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
-"""新增站点模板：拷贝本文件为 sites/<name>.py 并实现 search()。"""
-import requests
+"""新增站点模板：拷贝本文件为 sites/<name>.py 并实现 search()。
+路径/解释器由 scripts/_config.py 自动解析，无需在此处理。"""
+try:
+    import requests
+except ImportError:
+    import subprocess, sys as _sys
+    subprocess.check_call([_sys.executable, "-m", "pip", "install", "--quiet", "requests"])
+    import requests
 
 
 def search(query, n, page=1):

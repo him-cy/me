@@ -2,18 +2,21 @@
 """多批次合并：把第二批(不同前缀)接在第一批编号之后, 统一为一个连续编号集合并写表。
 例: Wikimedia(01_) + Pexels(P01_) → 连续 01_0001~01_0109。"""
 import os, json, sys, shutil
+from _config import cat_dir, TABLE_PATH, ensure
+ensure("openpyxl")
 import openpyxl
 sys.stdout.reconfigure(encoding="utf-8")
 
-# ===== 参数（改这里） =====
-PHOTO_DIR    = r"D:\photos\01_景观规划"
+# ===== 参数（只改任务相关；路径自动解析，不用手写） =====
+CAT_FOLDER    = "01_景观规划"
+PHOTO_DIR    = cat_dir(CAT_FOLDER)
 META_MERGED  = os.path.join(PHOTO_DIR, "_pending.json")        # 合并后统一元数据(输出)
 META_BATCH1  = os.path.join(PHOTO_DIR, "_pending_wikimedia.json")  # 第一批(已定稿)
 META_BATCH2  = os.path.join(PHOTO_DIR, "_pending_pexels.json")    # 第二批(待并入)
 PREFIX1      = "01_"
 PREFIX2      = "P01_"
 BATCH2_START = 76        # 第一批到 75, 第二批从 76 接
-EXCEL_PATH   = r"G:\数据采集项目需求文档\数据采集项目需求文档\采集记录表.xlsx"
+EXCEL_PATH   = TABLE_PATH
 CATEGORY     = "01"
 # ==========================
 

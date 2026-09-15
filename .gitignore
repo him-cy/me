@@ -11,6 +11,11 @@ tmp_*.jpg
 .crawl_lock
 dl01.lock
 
+# 自动生成的工作目录与核查页（按环境生成，不入库）
+_work/
+delete_lists/
+review*.html
+
 # OS
 Thumbs.db
 .DS_Store
@@ -18,3 +23,4 @@ Thumbs.db
 # 本地环境（含路径/密钥的本地配置）
 .env
 local_config.py
+local_config.json

@@ -2,11 +2,13 @@
 """生成图片核查 HTML 页面（人工模式）。改参数后运行。"""
 import os, json, html, sys
 sys.stdout.reconfigure(encoding="utf-8")
+from _config import cat_dir, WORKSPACE
 
-# ===== 参数（改这里） =====
-PHOTO_DIR = r"D:\photos\01_景观规划"
+# ===== 参数（只改任务相关；路径自动解析，不用手写） =====
+CAT_FOLDER = "01_景观规划"
+PHOTO_DIR = cat_dir(CAT_FOLDER)
 PENDING   = os.path.join(PHOTO_DIR, "_pending.json")   # 或 _pending_sample.json
-OUT_HTML  = r"C:\Users\51323\.openclaw\workspace\review.html"
+OUT_HTML  = os.path.join(WORKSPACE, "review.html")      # 核查页（也在 PHOTO_DIR 留一份）
 PREFIX    = "01_"        # 仅统计此前缀文件
 TITLE     = "01 景观规划 核查"
 LIST_NAME = "delete_list.txt"
@@ -70,9 +72,9 @@ function dl(){if(!bad.length){alert('未选中');return;}var t=bad.join('\\n');v
 html_content = "\n".join(L)
 with open(OUT_HTML, "w", encoding="utf-8") as fp:
     fp.write(html_content)
-for dst in [r"C:\Users\51323\Desktop\review.html", os.path.join(PHOTO_DIR, "review.html")]:
+for dst in [os.path.join(PHOTO_DIR, "review.html")]:
     try:
         with open(dst, "w", encoding="utf-8") as fp:
             fp.write(html_content)
     except: pass
-print("已生成:", OUT_HTML, "共", len(files), "张")
+print("已生成:", OUT_HTML, "共", len(files), "张（另存一份在", os.path.join(PHOTO_DIR, "review.html"), "）")

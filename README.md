@@ -41,19 +41,29 @@ English: An AI-agent skill that runs a 5-step image-collection pipeline (crawl �
 
 ## 配置注意
 
+- **开箱即用，无需改任何路径**：脚本里的所有机器相关路径（照片目录、采集表、删除清单目录、工作目录）和 Python 解释器都由 `scripts/_config.py` 在运行时自动探测。任何人克隆后发“爬取图片”即可跑，和你（作者）的步骤完全一样。
+- **想覆盖默认位置？** 用环境变量（可选）：
+  ```powershell
+  $env:COLLECT_PHOTOS   = "D:\photos"            # 照片根目录（默认 ~/photos，Windows 若 D:\photos 存在则沿用）
+  $env:COLLECT_TABLE    = "C:\path\采集记录表.xlsx" # 采集表（默认 ~/采集记录表.xlsx）
+  $env:COLLECT_DELETE_DIR = "C:\path\lists"       # 删除清单目录（默认 ~/delete_lists）
+  $env:COLLECT_WORKSPACE  = "C:\path\work"        # 工作/临时目录（默认 ~/photos/_work）
+  $env:COLLECT_PYTHON   = "C:\path\python.exe"    # 若自动探测失败，手动指定解释器
+  ```
 - **Pexels API Key**：默认使用从公开 SPA 提取的 demo key（共享、限流 200/小时）。**正式使用请到 https://www.pexels.com/api/ 申请自己的 key**，并设环境变量：
   ```powershell
   $env:PEXELS_API_KEY = "你的key"
   ```
-- **路径是作者机器定制的**：脚本里 `D:\photos\...`、`G:\数据采集项目需求文档\...`、`C:\Users\51323\...` 等是作者环境约定，请按自己的目录改脚本顶部常量。
-- **Python 解释器**：作者环境用 `D:\skill\QClaw\v0.2.36.628\resources\python\python.exe`，请换成你机器上的 python。
+- **依赖自动装**：`requests`、`openpyxl` 脚本首次运行会自动 `pip install`，无需手动装。
 
-## 目录约定（作者环境，按需调整）
+## 目录约定（自动解析，可用环境变量覆盖）
 
 ```
-D:\photos\<分类名>\              图片 + _pending.json(元数据)
-G:\...\采集记录表.xlsx           采集表
-F:\APP\delete_list*.txt          用户回传的删除清单
+照片根目录    ~/photos/                (Windows 若 D:\photos 存在则沿用；覆盖: COLLECT_PHOTOS)
+  分类目录    ~/photos/<分类名>/        图片 + _pending.json(元数据)
+采集表        ~/采集记录表.xlsx         (Windows 若 G:\...\采集记录表.xlsx 存在则沿用；覆盖: COLLECT_TABLE)
+删除清单目录  ~/delete_lists/          用户回传的 delete_list.txt（覆盖: COLLECT_DELETE_DIR）
+工作目录      ~/photos/_work/          核查页 HTML、AI 中间产物（覆盖: COLLECT_WORKSPACE）
 ```
 
 ## 血泪教训（写进 SKILL.md 的硬约束）

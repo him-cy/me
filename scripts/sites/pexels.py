@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 """Pexels 适配器（已验证可用）。"""
-import os, requests
+import os
+try:
+    import requests
+except ImportError:
+    import subprocess, sys as _sys
+    subprocess.check_call([_sys.executable, "-m", "pip", "install", "--quiet", "requests"])
+    import requests
+from _config import ensure
+ensure("requests")
 
 # 默认用从 pexels.vercel.app 公开 SPA 提取的 demo key（共享、限流 200/小时）。
 # 自用/发布请到 https://www.pexels.com/api/ 申请自己的 key，并设环境变量 PEXELS_API_KEY。

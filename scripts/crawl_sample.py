@@ -3,14 +3,16 @@
 import os, sys, json, importlib
 sys.stdout.reconfigure(encoding="utf-8")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _config import cat_dir
 
-# ===== 参数（改这里） =====
+# ===== 参数（只改任务相关；路径自动解析，不用手写） =====
 SITE     = "pexels"            # 站点适配器名（见 scripts/sites/）
 QUERY    = "landscape planning"
 SAMPLE_N = 30                  # 样本量（用户定义）
 CATEGORY = "01"                # 采集表分类
 PREFIX   = "S01_"              # 样本文件名前缀（区别于正式批）
-OUT_DIR  = r"D:\photos\01_景观规划"
+CAT_FOLDER = "01_景观规划"     # 照片子目录名（对应上面 CATEGORY）
+OUT_DIR  = cat_dir(CAT_FOLDER)
 # ==========================
 
 mod = importlib.import_module("sites." + SITE)

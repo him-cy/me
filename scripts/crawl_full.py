@@ -4,14 +4,16 @@
 import os, sys, json, importlib, hashlib, time
 sys.stdout.reconfigure(encoding="utf-8")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _config import cat_dir
 
-# ===== 参数（改这里） =====
+# ===== 参数（只改任务相关；路径自动解析，不用手写） =====
 SITE     = "pexels"
 QUERY    = "landscape planning"
 TARGET   = 206                 # = estimate.py 算出的 N
 CATEGORY = "01"
 PREFIX   = "01_"               # 正式批前缀
-OUT_DIR  = r"D:\photos\01_景观规划"
+CAT_FOLDER = "01_景观规划"     # 照片子目录名（对应上面 CATEGORY）
+OUT_DIR  = cat_dir(CAT_FOLDER)
 LOCK_FILE = os.path.join(OUT_DIR, ".crawl_lock")
 DL_SLEEP  = 1.0                # 每张间隔(秒)，防限流
 # ==========================

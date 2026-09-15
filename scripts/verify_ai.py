@@ -3,9 +3,11 @@
 代理判完后把结果写回 _ai_results.json，再跑 apply_results.py。"""
 import os, json, sys
 sys.stdout.reconfigure(encoding="utf-8")
+from _config import cat_dir
 
-# ===== 参数（改这里） =====
-PHOTO_DIR = r"D:\photos\01_景观规划"
+# ===== 参数（只改任务相关；路径自动解析，不用手写） =====
+CAT_FOLDER = "01_景观规划"
+PHOTO_DIR = cat_dir(CAT_FOLDER)
 PENDING   = os.path.join(PHOTO_DIR, "_pending.json")
 OUT_MANIFEST = os.path.join(PHOTO_DIR, "_verify_manifest.json")
 OUT_RESULTS  = os.path.join(PHOTO_DIR, "_ai_results.json")
