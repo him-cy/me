@@ -57,7 +57,7 @@ python --version
 爬取图片
 ```
 
-AI 会问你 8 个问题，照实回答：
+AI 会**先告诉你「已成功调用 Skill」**，接着问你 8 个问题，照实回答：
 
 1. **网站** — 答 `Pexels`（或填别的网站）
 2. **主题** — 你想要什么类型的图片，比如「景观规划」「广场庭院」
@@ -99,6 +99,7 @@ AI 会问你 8 个问题，照实回答：
 ### 0. 启动对话
 
 > 调用方：爬取图片
+> Agent：已成功调用 Skill「image-collect-pipeline」（目录名 `pexels-image-crawl`），下面会按 8 项参数与你确认后开始执行。
 > Agent：以下 8 项请确认：
 >   1. 网站 → Pexels
 >   2. 主题 → 景观规划，搜索词 `landscape planning`
