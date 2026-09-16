@@ -1,56 +1,102 @@
 # pexels-image-crawl
 
-图片采集流水线：批量爬取真实照片 → 小样本测合格率 → 估算大批量 → 核查筛选 → 写入采集表。
+图片采集流水线：从图片网站批量爬取真实照片 → 小样本测合格率 → 估算大批量 → 核查筛选 → 写入采集表。
 默认站点 Pexels；提供 Wikimedia / Unsplash 适配器模板。
 
-可由 AI Agent 通过触发词驱动（`爬取图片` / `采集图片`），也可直接调用脚本。
+完全没写过代码也能用：从「零基础入门」开始，按步骤 10 分钟跑通。
 
-A pipeline that crawls real photos in batch → samples for pass-rate → estimates batch size via Wilson 95% lower bound → reviews/cleans → writes to a collection spreadsheet. Pexels adapter is production-tested; Wikimedia/Unsplash are templated.
+---
 
-## 特性
+## 零基础入门：从零跑通（10 分钟）
 
-- **闭环估算**：小样本 → Wilson 95% 置信下界 + 失败缓冲 → 大批量爬取量（避免按平均率爬完发现不够）
-- **健壮性**：断点续传、内容 MD5 去重、单实例锁（防幽灵爬虫并发污染，曾因此丢失数百张图）
-- **核查双模式**：AI 视觉（`image` 工具）或人工 HTML 页（本地双击打开）
-- **三方对账**：每步结束校验 `磁盘文件数 == 元数据条数 == Excel 行数`
-- **跨平台**：路径与 Python 解释器运行时自动探测；Win / Mac / Linux 开箱即用，无需改任何配置
+不需要任何代码基础。一步一步照做即可。
 
-## 安装
+### 0. 准备三样东西
 
-放入 Agent 的 skills 路径：
+| 东西 | 怎么准备 |
+|------|----------|
+| **一台电脑**（Win 10/11、macOS、Linux 均可） | 你已经有了 |
+| **Python 3.8 或更新版本** | 没装就去 [python.org/downloads](https://www.python.org/downloads/) 下载安装；**安装时务必勾上 "Add Python to PATH"**（最关键的一步） |
+| **一个支持 Skill 的 AI 助手** | QClaw / Claude / Cursor 均可，详见下方「适配的 AI 工具」 |
+| **能联网** | 爬图需要 |
+
+### 1. 确认 Python 装好了
+
+打开**终端**（也叫命令行、命令提示符、Terminal）：
+
+- **Windows**：按 `Win + R`，输入 `cmd`，回车
+- **macOS**：按 `Cmd + 空格`，输入 `Terminal`，回车
+- **Linux**：应用菜单里找「终端」或「Terminal」
+
+在终端里输入下面这行（注意是英文横杠和两个短横）：
 
 ```
-~/.qclaw/skills/pexels-image-crawl/         # QClaw / OpenClaw
-~/.claude/skills/pexels-image-crawl/        # Claude（按对应工具约定）
+python --version
 ```
 
-依赖：
+看到类似 `Python 3.11.5` 的输出就 OK。`3.` 后面那个数字 ≥ 8 即可。
 
-```bash
-pip install requests openpyxl
-# 缺则脚本首次运行会自动 pip install（见配置）
+如果提示 `python 不是内部或外部命令` / `command not found`：说明 Python 没装或没加到 PATH，请重新安装并**勾上 "Add Python to PATH"**。
+
+### 2. 把 Skill 文件夹放到正确位置
+
+把整个 `pexels-image-crawl` 文件夹（连同里面的 `SKILL.md`、`scripts/`、`references/`）复制到下面其中一个位置（根据你用的 AI 工具选）：
+
+| AI 工具 | 文件夹放这里 |
+|---------|--------------|
+| QClaw / OpenClaw | `C:\Users\你的用户名\.qclaw\skills\`（Win）或 `~/.qclaw/skills/`（Mac/Linux） |
+| Claude Code | `~/.claude/skills/` |
+| Claude Desktop / claude.ai | 同上 `~/.claude/skills/`，并开启 Skills 功能 |
+| Cursor / Windsurf | 看对应工具文档的 skills 目录 |
+
+文件夹不存在就手动新建一个。复制完成后**重启 AI 助手**，让 Skill 生效。
+
+### 3. 跟 AI 说一句话
+
+重启 AI 后，对它说：
+
+```
+爬取图片
 ```
 
-## 触发与脚本
+AI 会问你 8 个问题，照实回答：
 
-由 Agent 触发时，Agent 先询问 8 项任务参数，再按 5 步流程调用以下脚本。直接调用时改脚本顶部任务常量即可。所有脚本的机器相关路径均由 `scripts/_config.py` 自动解析，无需手动配置。
+1. **网站** — 答 `Pexels`（或填别的网站）
+2. **主题** — 你想要什么类型的图片，比如「景观规划」「广场庭院」
+3. **需求量** — 你最终要多少张图，比如 `30`
+4. **样本量** — 先爬多少张试试，比如 `30`
+5. **合格标准** — 什么样的图算合格，AI 会给个默认模板可改
+6. **核查方式** — 选「人工」会用 HTML 页面让你点选；选「AI」会让 AI 自己看图判
+7. **分类编号** — 你这个分类的编号，比如 `01`
+8. **输出目录** — 默认即可，图片会存到 `~/photos/<分类名>/`
 
-| 脚本 | 用途 | 关键输入（任务常量） |
-|------|------|---------------------|
-| `scripts/crawl_sample.py` | 爬小样本 | `SITE / QUERY / SAMPLE_N / CATEGORY / CAT_FOLDER / PREFIX` |
-| `scripts/estimate.py` | 估算大批量目标数 | `DEMAND / SAMPLE_N / QUALIFIED / FAIL_BUF` |
-| `scripts/crawl_full.py` | 大批量爬取 | `SITE / QUERY / TARGET / CATEGORY / CAT_FOLDER / PREFIX` |
-| `scripts/gen_review_html.py` | 生成人工核查页 | `CAT_FOLDER / PREFIX / PENDING` |
-| `scripts/verify_ai.py` | 生成 AI 核查清单 | `CAT_FOLDER / PREFIX / PENDING` |
-| `scripts/apply_results.py` | 删不合格 + 重命名 + 更新元数据 | `CAT_FOLDER / DELETE_LIST` 或 `AI_RESULTS` |
-| `scripts/finalize_table.py` | 写入采集表 | `CAT_FOLDER / CATEGORY / SOURCE_TYPE` |
-| `scripts/integrate.py` | 多批次合并 | `CAT_FOLDER / META_BATCH1 / META_BATCH2 / PREFIX1 / PREFIX2 / BATCH2_START` |
+回答完，AI 会按 5 步自动跑完全流程。
 
-站点适配器在 `scripts/sites/`：`pexels.py`（已验证）、`template.py`（照抄实现 `search()` / `download()` 即可加新站）。
+### 4. 你会得到什么
+
+跑完后你会拿到：
+
+- 一堆图片，编号 `01_0001.jpg` 这种，存到 `~/photos/<分类名>/`
+- 你的采集记录表 Excel 多出 N 行（自动追加，不会覆盖已有数据）
+- 中间 AI 会跟你确认关键步骤，**不会偷偷删你电脑里的东西**
+
+### 第一次跑常踩的坑
+
+| 现象 | 原因和解决 |
+|------|------------|
+| 终端中文显示乱码 | Windows：控制面板 → 区域 → 管理 → 更改系统区域设置 → 勾「Beta：使用 Unicode UTF-8」→ 重启。脚本已经做了一部分处理，这步能彻底解决 |
+| `python` 命令找不到 | 重装 Python 时忘了勾 "Add Python to PATH"，重装时记得勾。或在终端用 `where python`（Win）/ `which python3`（Mac）查实际路径 |
+| 脚本说 `pip install` 失败 | 先在终端执行 `python -m pip install --upgrade pip` 再试 |
+| 想中途停掉爬虫 | 在终端按 `Ctrl + C`（Mac 是 `Cmd + C`） |
+| 不知道图片存哪了 | 默认 `~/photos/<分类名>/`，例如 `~/photos/01_景观规划/`。`~` 在 Windows 上等于 `C:\Users\你的用户名\` |
+| 核查页打不开/图片不显示 | 双击 `review.html` 会用浏览器打开；如果图片空白，是浏览器安全策略拦截本地文件。右键缩略图 → 「在新标签页打开图片」可单独查看 |
+| AI 不响应「爬取图片」 | 检查 Skill 文件夹路径是否正确，重启 AI 助手后再试 |
+
+---
 
 ## 小项目示例：Pexels 爬「01 景观规划」48 张入库
 
-下面以一个最小闭环走完 5 步流水线：需求量 30、样本 30、全量 ~55、删除 7、最终入库 48 行。
+下面用一个最小闭环走完 5 步流水线：需求 30、样本 30、全量 ~55、删除 7、最终入库 48 行。
 
 ### 0. 启动对话
 
@@ -169,6 +215,27 @@ python -u scripts/finalize_table.py
 
 ---
 
+## 安装（开发者向简版）
+
+放入 Agent 的 skills 路径（详见上方「适配的 AI 工具」表格）。依赖 `requests`、`openpyxl`，脚本首次运行会自动 `pip install`。
+
+## 触发与脚本
+
+由 Agent 触发时，Agent 先询问 8 项任务参数，再按 5 步流程调用以下脚本。直接调用时改脚本顶部任务常量即可。所有脚本的机器相关路径均由 `scripts/_config.py` 自动解析，无需手动配置。
+
+| 脚本 | 用途 | 关键输入（任务常量） |
+|------|------|---------------------|
+| `scripts/crawl_sample.py` | 爬小样本 | `SITE / QUERY / SAMPLE_N / CATEGORY / CAT_FOLDER / PREFIX` |
+| `scripts/estimate.py` | 估算大批量目标数 | `DEMAND / SAMPLE_N / QUALIFIED / FAIL_BUF` |
+| `scripts/crawl_full.py` | 大批量爬取 | `SITE / QUERY / TARGET / CATEGORY / CAT_FOLDER / PREFIX` |
+| `scripts/gen_review_html.py` | 生成人工核查页 | `CAT_FOLDER / PREFIX / PENDING` |
+| `scripts/verify_ai.py` | 生成 AI 核查清单 | `CAT_FOLDER / PREFIX / PENDING` |
+| `scripts/apply_results.py` | 删不合格 + 重命名 + 更新元数据 | `CAT_FOLDER / DELETE_LIST` 或 `AI_RESULTS` |
+| `scripts/finalize_table.py` | 写入采集表 | `CAT_FOLDER / CATEGORY / SOURCE_TYPE` |
+| `scripts/integrate.py` | 多批次合并 | `CAT_FOLDER / META_BATCH1 / META_BATCH2 / PREFIX1 / PREFIX2 / BATCH2_START` |
+
+站点适配器在 `scripts/sites/`：`pexels.py`（已验证）、`template.py`（照抄实现 `search()` / `download()` 即可加新站）。
+
 ## 配置
 
 ### 路径与解释器自动解析
@@ -204,6 +271,20 @@ $env:PEXELS_API_KEY = "你的key"
 ### 依赖自动安装
 
 `requests`、`openpyxl` 缺失时脚本首次运行会自动 `pip install`。
+
+## 适配的 AI 工具
+
+| 档 | 工具 | 用法 |
+|----|------|------|
+| 原生 | QClaw / OpenClaw | 放 `~/.qclaw/skills/` |
+| 原生 | Claude Code | 放 `~/.claude/skills/` |
+| 原生 | Claude Desktop / claude.ai（Pro/Max） | 放 `~/.claude/skills/`，并开启 Skills 功能 |
+| 兼容 | Cursor、Windsurf 等支持 Agent Skills 的工具 | 放各自的 skills 目录 |
+| 手动 | ChatGPT、Gemini、通义、豆包 | 把 `SKILL.md` 整篇贴进对话作为系统提示，再让模型调脚本 |
+
+判定依据：本 Skill 用的是 Anthropic 开源的 **Agent Skills 标准**——`SKILL.md`（YAML 头 + 工作流）+ `scripts/`（Python 脚本）+ `references/`（参考文档）。纯文件结构，不绑任何闭源 API。
+
+唯一硬约束：执行端 Python 3.8+，能装 `requests` / `openpyxl`（脚本自动装）。
 
 ## 目录布局
 
