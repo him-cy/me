@@ -39,22 +39,23 @@ English: An AI-agent skill that runs a 5-step image-collection pipeline (crawl �
 
 站点适配器在 `scripts/sites/`：`pexels.py`（已验证）、`template.py`（照抄实现 `search()`/`download()` 即可加新站）。
 
-## 配置注意
+## 配置
 
-- **开箱即用，无需改任何路径**：脚本里的所有机器相关路径（照片目录、采集表、删除清单目录、工作目录）和 Python 解释器都由 `scripts/_config.py` 在运行时自动探测。任何人克隆后发“爬取图片”即可跑，和你（作者）的步骤完全一样。
-- **想覆盖默认位置？** 用环境变量（可选）：
+- **路径与解释器自动解析**：所有机器相关路径（照片目录、采集表、删除清单目录、工作目录）和 Python 解释器由 `scripts/_config.py` 在运行时解析。默认值见下表，可用环境变量覆盖。
+- **环境变量覆盖默认位置**：
   ```powershell
-  $env:COLLECT_PHOTOS   = "D:\photos"            # 照片根目录（默认 ~/photos，Windows 若 D:\photos 存在则沿用）
-  $env:COLLECT_TABLE    = "C:\path\采集记录表.xlsx" # 采集表（默认 ~/采集记录表.xlsx）
-  $env:COLLECT_DELETE_DIR = "C:\path\lists"       # 删除清单目录（默认 ~/delete_lists）
-  $env:COLLECT_WORKSPACE  = "C:\path\work"        # 工作/临时目录（默认 ~/photos/_work）
-  $env:COLLECT_PYTHON   = "C:\path\python.exe"    # 若自动探测失败，手动指定解释器
+  $env:COLLECT_PHOTOS     = "D:\photos"             # 照片根目录
+  $env:COLLECT_TABLE      = "C:\path\采集记录表.xlsx" # 采集表
+  $env:COLLECT_DELETE_DIR = "C:\path\lists"         # 删除清单目录
+  $env:COLLECT_WORKSPACE  = "C:\path\work"          # 工作/临时目录
+  $env:COLLECT_PYTHON     = "C:\path\python.exe"    # Python 解释器
   ```
-- **Pexels API Key**：默认使用从公开 SPA 提取的 demo key（共享、限流 200/小时）。**正式使用请到 https://www.pexels.com/api/ 申请自己的 key**，并设环境变量：
+  默认值：`~/photos`、`~/采集记录表.xlsx`、`~/delete_lists`、`~/photos/_work`；`COLLECT_PYTHON` 留空时按 `当前解释器 → PATH → 常见 bundled 位置` 自动探测。Windows 下若 `D:\photos` 或 G 盘那份采集表已存在则沿用，避免硬迁移现有数据。
+- **Pexels API Key**：默认使用从 `pexels.vercel.app` 公开 SPA 提取的 demo key（共享、限流 200/小时）。生产环境请到 https://www.pexels.com/api/ 申请自己的 key，设环境变量：
   ```powershell
   $env:PEXELS_API_KEY = "你的key"
   ```
-- **依赖自动装**：`requests`、`openpyxl` 脚本首次运行会自动 `pip install`，无需手动装。
+- **第三方依赖**：`requests`、`openpyxl`。脚本首次运行若检测到缺失会自动 `pip install`。
 
 ## 目录约定（自动解析，可用环境变量覆盖）
 
